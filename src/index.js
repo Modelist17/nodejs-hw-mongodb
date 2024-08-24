@@ -1,4 +1,4 @@
-import { setupServer } from './service.js';
+import { setupServer } from './server.js';
 
 const bootstrap = () => {
   setupServer();
