@@ -8,7 +8,7 @@ import {
 } from '../../validation/validationContacts.js';
 //=============Middlewares================================//
 import { validateBody } from '../middlewares/validateBody.js';
-import { isValidId } from '../middlewares/isValidId.js';
+import { isValidId } from '../middlewares/isValidId';
 
 //==============Utils================================//
 
