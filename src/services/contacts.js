@@ -1,20 +1,60 @@
-import mongoose from 'mongoose';
+// import mongoose from 'mongoose';
 import { Contact } from '../db/modals/contacts.js';
 
-async function getAllContacts() {
+async function getAllContacts({
+  page,
+  perPage,
+  sortBy,
+  sortOrder,
+  filter = {},
+}) {
+  const { type, isFavourite } = filter;
+  const skip = page > 0 ? (page - 1) * perPage : 0;
   try {
-    const contacts = await Contact.find({});
+    let contactsQuery = Contact.find();
 
-    return contacts;
+    if (type) {
+      contactsQuery.where('contactType').equals(type);
+    }
+    if (isFavourite === true || isFavourite === false) {
+      contactsQuery.where('isFavourite').equals(isFavourite);
+    }
+    const [contacts, count] = await Promise.all([
+      contactsQuery
+        .sort({ [sortBy]: sortOrder })
+        .skip(skip)
+        .limit(perPage)
+        .exec(),
+      Contact.find().countDocuments(),
+    ]);
+
+    const totalPages = Math.ceil(count / perPage);
+
+    if (page > totalPages) {
+      page = totalPages;
+    } else if (page <= 0) {
+      page = 1;
+    }
+
+    const hasPreviousPage = page > 1;
+    const hasNextPage = page < totalPages;
+
+    return {
+      data: contacts,
+      page,
+      perPage,
+      totalItems: count,
+      totalPages,
+      hasPreviousPage,
+      hasNextPage,
+    };
   } catch (error) {
-    console.log(`Error getting Http to find all contacts: ${error}`);
+    console.log(`Error getting contacts: ${error.message}`);
   }
 }
 
 async function getContactById(id) {
   try {
-    if (!mongoose.Types.ObjectId.isValid(id)) return;
-
     const contact = await Contact.findById(id);
     return contact;
   } catch (error) {
@@ -40,7 +80,7 @@ async function deleteContactById(id) {
 }
 
 async function updateContact(id, contact, options = {}) {
-  if (!mongoose.Types.ObjectId.isValid(id)) return null;
+  // if (!mongoose.Types.ObjectId.isValid(id)) return null;
 
   const rawResult = await Contact.findOneAndUpdate({ _id: id }, contact, {
     new: true,
