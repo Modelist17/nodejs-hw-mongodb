@@ -6,11 +6,14 @@ import {
   updateContact,
 } from '../services/contacts.js';
 
-//==========UTILS=========//
+//==========================UTILS=========//
 import { parsePaginationParams } from '../utils/parsePaginationParams.js';
 import { parseSortParams } from '../utils/parseSortParams.js';
 import { parseFilterParams } from '../utils/parseFilterParams.js';
+import { saveFileToCloudinary } from '../utils/saveFileToCloudinary.js';
+import { saveFileToUploadDir } from '../utils/saveFileToUploadDir.js';
 //==========================//
+import { CLOUDINARY } from '../constants/index.js';
 
 import createHttpError from 'http-errors';
 
@@ -49,6 +52,8 @@ const getContactsController = async (req, res, next) => {
   }
 };
 
+//================getContactsByIdController======================//
+
 
 const getContactsByIdController = async (req, res, next) => {
   const { id } = req.params;
@@ -64,9 +69,12 @@ const getContactsByIdController = async (req, res, next) => {
     data: contact,
   });
 };
-//===============createContactsController=================//
+//=====================createContactsController=================//
 
 async function createContactsController(req, res) {
+  const photo = req.file;
+  const imageUrl = photo ? await saveFileToCloudinary(photo) : '';
+
   const newContact = {
     name: req.body.name,
     phoneNumber: req.body.phoneNumber,
@@ -74,9 +82,10 @@ async function createContactsController(req, res) {
     isFavourite: req.body.isFavourite,
     contactType: req.body.contactType,
     userId: req.user._id,
+    ...(imageUrl && { photo: imageUrl }),
   };
-
   const createdContact = await createNewContact(newContact);
+
   res.status(201).json({
     status: 201,
     message: 'Successfully created a contact!',
@@ -97,13 +106,27 @@ async function deleteContactController(req, res, next) {
   res.status(204).send();
 }
 
-//====================patchContactsByIdController===============//
+//=======================patchContactsByIdController===============//
 
-async function patchContactsByIdController(req, res, next) {
+
+const patchContactsByIdController = async (req, res, next) => {
   const { id } = req.params;
+  const photo = req.file;
+  console.log(photo);
+  let photoUrl;
+  if (photo) {
+    if (CLOUDINARY.ENABLE_CLOUDINARY === 'true') {
+      photoUrl = await saveFileToCloudinary(photo);
+    } else {
+      photoUrl = await saveFileToUploadDir(photo);
+    }
+  }
 
-  const result = await updateContact(id, req.user._id, req.body);
-
+  const result = await updateContact(id, req.user._id, {
+    ...req.body,
+    photo: photoUrl,
+  });
+  console.log(result);
   if (!result) {
     next(createHttpError(404, 'Contact not found'));
     return;
@@ -111,9 +134,9 @@ async function patchContactsByIdController(req, res, next) {
   res.json({
     status: 200,
     message: `Successfully patched a contact!`,
-    data: result.contact,
+    data: { ...result.contact.toObject(), __v: undefined },
   });
-}
+};
 
 //======================================//
 
@@ -124,3 +147,4 @@ export {
   deleteContactController,
   patchContactsByIdController,
 };
+
