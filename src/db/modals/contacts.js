@@ -1,28 +1,19 @@
-import { model, Schema } from 'mongoose';
+import mongoose from 'mongoose';
 
-const contactsSchema = new Schema(
+const userSchema = new mongoose.Schema(
   {
     name: {
       type: String,
       required: true,
     },
-    phoneNumber: {
-      type: String,
-      required: true,
-    },
     email: {
       type: String,
-      optional: true,
+      required: true,
+      unique: true,
     },
-    isFavourite: {
-      type: Boolean,
-      default: false,
-    },
-    contactType: {
+    password: {
       type: String,
       required: true,
-      default: 'personal',
-      enum: ['work', 'home', 'personal'],
     },
   },
   {
@@ -30,5 +21,12 @@ const contactsSchema = new Schema(
     versionKey: false,
   },
 );
+userSchema.methods.toJSON = function () {
+  const obj = this.toObject();
+  delete obj.password;
+  return obj;
+};
 
-export const Contact = model('Contact', contactsSchema);
+const User = mongoose.model('User', userSchema);
+
+export default User;
