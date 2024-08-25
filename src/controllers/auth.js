@@ -1,6 +1,6 @@
 import * as AuthService from '../services/auth.js';
 
-//=============registerController USER =================//
+//======================registerController USER =================//
 
 async function registerController(req, res) {
   const user = {
@@ -18,7 +18,7 @@ async function registerController(req, res) {
   });
 }
 
-//================loginController USER =================//
+//======================loginController USER =================//
 
 async function loginController(req, res) {
   const { email, password } = req.body;
@@ -44,7 +44,7 @@ async function loginController(req, res) {
   });
 }
 
-//=========logoutUserController USER =============//
+//======================logoutUserController USER =================//
 
 const logoutUserController = async (req, res) => {
   if (typeof req.cookies.sessionId === 'string') {
@@ -60,7 +60,7 @@ const logoutUserController = async (req, res) => {
   res.status(204).send();
 };
 
-//==============refreshUserController USER =================//
+//======================refreshUserController USER =================//
 
 async function refreshUserController(req, res) {
   const session = await AuthService.refreshUser(
@@ -87,9 +87,36 @@ async function refreshUserController(req, res) {
   });
 }
 
+//=======================Reser email =================//
+
+async function resetEmailController(req, res) {
+  const emailToReset = req.body.email;
+
+  await AuthService.resetEmail(emailToReset);
+  res.send({
+    status: 200,
+    message: 'Reset password email has been successfully sent.',
+    data: {},
+  });
+}
+
+async function resetPasswordController(req, res) {
+  const { password, token } = req.body;
+
+  await AuthService.resetPassword(password, token);
+
+  res.send(200, {
+    status: 200,
+    message: 'Password reset has been successfully updated.',
+    data: {},
+  });
+}
+
 export {
   registerController,
   loginController,
   logoutUserController,
   refreshUserController,
+  resetEmailController,
+  resetPasswordController,
 };
