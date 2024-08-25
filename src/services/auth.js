@@ -116,7 +116,7 @@ async function resetEmail(email) {
 
   const html = sendingTemplate({
     name: user.name,
-    link: `${APP_DOMAIN}/reset-password?token=${jwtResetToken}`,
+    link: `${APP_DOMAIN}/reset-password?token=${jwtResetToken}`, //for the link in index.html
   });
 
   sendEmail({
