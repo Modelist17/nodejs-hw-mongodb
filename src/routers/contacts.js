@@ -1,22 +1,22 @@
 import { Router } from 'express';
 import express from 'express';
 
-//====Schema====//
+//============Schema====//
 import {
   createContactSchema,
   updateContactSchema,
 } from '../validation/validationContacts.js';
-//=============Middlewares===================//
+//=============Middlewares================================//
 import { validateBody } from '../middlewares/validateBody.js';
 import { isValidId } from '../middlewares/isValidId.js';
 import { authUser } from '../middlewares/auth.js';
+import { upload } from '../middlewares/multer.js';
 
-
-//==============Utils================//
+//==============Utils================================//
 
 import ctrlWrapper from '../utils/ctrlWrapper.js';
 
-//=============Controller===============//
+//=============Controller================================//
 
 import {
   getContactsController,
@@ -26,7 +26,7 @@ import {
   patchContactsByIdController,
 } from '../controllers/contacts.js';
 
-//============Routers=============//
+//============Routers====================//
 
 const contactsRouter = Router();
 const jsonParser = express.json();
@@ -49,6 +49,8 @@ contactsRouter.post(
   '/contacts',
   authUser,
   jsonParser,
+  upload.single('photo'),
+
   validateBody(createContactSchema),
   ctrlWrapper(createContactsController),
 );
@@ -58,6 +60,7 @@ contactsRouter.delete(
   authUser,
   isValidId,
   jsonParser,
+
   ctrlWrapper(deleteContactController),
 );
 
@@ -66,6 +69,8 @@ contactsRouter.patch(
   authUser,
   isValidId,
   jsonParser,
+  upload.single('photo'),
+
   validateBody(updateContactSchema),
   ctrlWrapper(patchContactsByIdController),
 );

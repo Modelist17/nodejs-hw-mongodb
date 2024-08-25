@@ -87,10 +87,10 @@ async function deleteContactById(id, userId) {
   }
 }
 
-async function updateContact(id, userId, contact, options = {}) {
+const updateContact = async (id, userId, payload, options = {}) => {
   const rawResult = await Contact.findOneAndUpdate(
     { _id: id, userId },
-    contact,
+    payload,
     {
       new: true,
       includeResultMetadata: true,
@@ -99,12 +99,11 @@ async function updateContact(id, userId, contact, options = {}) {
   );
 
   if (!rawResult || !rawResult.value) return null;
-
   return {
     contact: rawResult.value,
     isNew: Boolean(rawResult?.lastErrorObject?.upserted),
   };
-}
+};
 
 export {
   getContactById,
